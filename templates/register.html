@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Registration - Hackathon</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      text-align: center;
+      background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)),
+                  url('/static/bg.png') no-repeat center center/cover;
+      color: white;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #00d1ff;
+      text-shadow: 0 0 15px #00d1ff;
+    }
+
+    .form-box {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 25px;
+      width: 350px;
+      margin: 30px auto;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 0 15px rgba(0,0,0,0.6);
+      animation: fadeIn 1s ease;
+    }
+
+    input {
+      padding: 12px;
+      width: 90%;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: none;
+      text-align: center;
+      outline: none;
+    }
+
+    .btn {
+      display: inline-block;
+      background: linear-gradient(45deg, #007bff, #00d1ff);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 30px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease-in-out;
+      margin: 10px;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+      background: linear-gradient(45deg, #00b894, #00d1ff);
+      box-shadow: 0 0 15px #00d1ff;
+    }
+
+    #qr-section {
+      display: none;
+      margin-top: 30px;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    #qr-code {
+      margin-top: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #00d1ff;
+    }
+
+    .team-details {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #00d1ff;
+      text-shadow: 0 0 8px #00d1ff;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📝 Hackathon Team Registration</h1>
+
+  <div class="form-box" id="register-form">
+    <input type="text" id="team_name" placeholder="Enter Team Name" required><br>
+    <input type="text" id="members" placeholder="Enter Members (comma-separated)" required><br>
+    <button class="btn" onclick="registerTeam()">Register Team</button>
+  </div>
+
+  <!-- Success + QR Display -->
+  <div id="qr-section">
+    <h2>🎉 Team Registered Successfully!</h2>
+    <p class="team-details" id="team-info"></p>
+    <img id="qr-code" width="250" height="250" />
+    <br>
+    <a id="download-btn" class="btn" download>📥 Download QR</a>
+    <br>
+    <button class="btn" onclick="newRegistration()">🆕 Register New Team</button>
+  </div>
+
+  <script>
+    async function registerTeam() {
+      const teamName = document.getElementById('team_name').value.trim();
+      const membersInput = document.getElementById('members').value.trim();
+
+      if (!teamName || !membersInput) {
+        alert('⚠️ Please enter both team name and members.');
+        return;
+      }
+
+      const members = membersInput.split(',').map(m => m.trim()).filter(Boolean);
+
+      const response = await fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ team_name: teamName, members: members })
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        alert('⚠️ ' + data.error);
+        return;
+      }
+
+      // Hide form, show QR section
+      document.getElementById('register-form').style.display = 'none';
+      document.getElementById('qr-section').style.display = 'block';
+
+      document.getElementById('team-info').innerText =
+        `Team: ${teamName}\nMembers: ${members.join(', ')}`;
+      document.getElementById('qr-code').src = 'data:image/png;base64,' + data.qr;
+
+      const downloadLink = document.getElementById('download-btn');
+      downloadLink.href = 'data:image/png;base64,' + data.qr;
+      downloadLink.download = `${teamName}.png`;
+    }
+
+    function newRegistration() {
+      // Reset fields and toggle back
+      document.getElementById('team_name').value = '';
+      document.getElementById('members').value = '';
+      document.getElementById('register-form').style.display = 'block';
+      document.getElementById('qr-section').style.display = 'none';
+    }
+  </script>
+  <!-- 💙 Global Footer -->
+<footer>
+  Built by <b>Samarth S G</b> | Ignitron 2k25 
+</footer>
+
+
+</body>
+</html>

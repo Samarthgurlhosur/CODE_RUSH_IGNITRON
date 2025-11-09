@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard - Hackathon QRs</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      text-align: center;
+      background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)),
+                  url('/static/bg.png') no-repeat center center/cover;
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #00d1ff;
+      text-shadow: 0 0 15px #00d1ff;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      display: inline-block;
+      background: linear-gradient(45deg, #007bff, #00d1ff);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 30px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease-in-out;
+      margin: 10px;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+      background: linear-gradient(45deg, #00b894, #00d1ff);
+      box-shadow: 0 0 15px #00d1ff;
+    }
+
+    .delete-btn {
+      background: linear-gradient(45deg, #ff4d4d, #ff0000);
+      box-shadow: 0 0 10px #ff4d4d;
+    }
+
+    .admin-card {
+      background: rgba(255, 255, 255, 0.08);
+      margin: 25px auto;
+      width: 90%;
+      border-radius: 15px;
+      padding: 20px;
+      color: #fff;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+      text-align: left;
+      transition: transform 0.3s ease;
+    }
+
+    .admin-card:hover {
+      transform: scale(1.01);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255, 255, 255, 0.9);
+      color: black;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #00b894;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background: #f2f2f2;
+    }
+
+    tr:hover {
+      background: rgba(0, 209, 255, 0.15);
+    }
+
+    .team-title {
+      font-size: 22px;
+      color: #00d1ff;
+      margin-top: 15px;
+      text-shadow: 0 0 10px #00d1ff;
+    }
+
+    .search-bar {
+      padding: 10px 20px;
+      border-radius: 25px;
+      border: none;
+      outline: none;
+      width: 300px;
+      font-size: 16px;
+      margin: 20px auto;
+      display: block;
+      text-align: center;
+    }
+
+    /* Chart container */
+    .charts-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 30px;
+      margin: 20px auto 40px;
+    }
+
+    .chart-box {
+      width: 220px;
+      height: 250px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 15px;
+      box-shadow: 0 0 15px rgba(0, 209, 255, 0.3);
+      backdrop-filter: blur(10px);
+      color: white;
+    }
+
+    .chart-label {
+      margin-top: 10px;
+      font-weight: 600;
+      color: #00d1ff;
+      text-shadow: 0 0 10px #00d1ff;
+    }
+
+    .chart-number {
+      font-size: 24px;
+      font-weight: bold;
+      color: #fff;
+      margin-top: 8px;
+      text-shadow: 0 0 10px #00d1ff;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .top-buttons {
+      margin-bottom: 25px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🏆 Admin Dashboard</h1>
+  <p>Manage teams, view updates, export QRs, or reset data.</p>
+
+  <!-- 🔍 Search Bar -->
+  <input type="text" id="search" onkeyup="searchTeam()" placeholder="🔍 Search team name..." class="search-bar" />
+
+  <!-- 📊 Chart Stats Dashboard -->
+  <div class="charts-container">
+    <div class="chart-box">
+      <canvas id="checkinChart"></canvas>
+      <div class="chart-label">Check-Ins</div>
+      <div class="chart-number" id="checkinNum">0</div>
+    </div>
+    <div class="chart-box">
+      <canvas id="snackChart"></canvas>
+      <div class="chart-label">Snacks</div>
+      <div class="chart-number" id="snackNum">0</div>
+    </div>
+    <div class="chart-box">
+      <canvas id="dinnerChart"></canvas>
+      <div class="chart-label">Dinners</div>
+      <div class="chart-number" id="dinnerNum">0</div>
+    </div>
+    <div class="chart-box">
+      <canvas id="checkoutChart"></canvas>
+      <div class="chart-label">Check-Outs</div>
+      <div class="chart-number" id="checkoutNum">0</div>
+    </div>
+  </div>
+
+  <!-- 🔝 Top control buttons -->
+  <div class="top-buttons">
+    <a href="/export_qrs" class="btn" download>⬇️ Download All QRs (ZIP)</a>
+    <form action="/delete_all" method="POST"
+          onsubmit="return confirm('⚠️ Are you sure you want to delete ALL team data? This cannot be undone.');"
+          style="display:inline;">
+      <button type="submit" class="btn delete-btn">🗑️ Delete All Data</button>
+    </form>
+  </div>
+
+  {% if teams_data %}
+    {% for item in teams_data %}
+      <div class="admin-card">
+        <h2 class="team-title">{{ item.team.team_name }}</h2>
+        <p><strong>Team ID:</strong> {{ item.team.team_id }}</p>
+        <p>🕒 Last Updated: {{ item.team.last_updated }}</p>
+
+        <div class="action-buttons" style="text-align:right; margin-bottom:10px;">
+          <a href="/team_qr/{{ item.team.team_id }}" target="_blank" class="btn">👁️ Show QR</a>
+          <a href="/team_qr/{{ item.team.team_id }}" download="{{ item.team.team_name }}.png" class="btn">📥 Download QR</a>
+          <form action="/delete_team/{{ item.team.team_id }}" method="POST" 
+                onsubmit="return confirm('Delete team {{ item.team.team_name }}?');"
+                style="display:inline;">
+            <button type="submit" class="btn delete-btn">🗑️ Delete Team</button>
+          </form>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Member Name</th>
+              <th>Check-In</th>
+              <th>Snacks</th>
+              <th>Dinner</th>
+              <th>Check-Out</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in item.members %}
+              <tr>
+                <td>{{ m.member_name }}</td>
+                <td>{{ '✅' if m.check_in else '❌' }}</td>
+                <td>{{ '✅' if m.snacks else '❌' }}</td>
+                <td>{{ '✅' if m.dinner else '❌' }}</td>
+                <td>{{ '✅' if m.check_out else '❌' }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No teams found yet. Register teams to view data here.</p>
+  {% endif %}
+
+  <script>
+    // 🔍 Search Filter
+    function searchTeam() {
+      let input = document.getElementById("search").value.toLowerCase();
+      let cards = document.getElementsByClassName("admin-card");
+      for (let card of cards) {
+        let name = card.querySelector(".team-title").innerText.toLowerCase();
+        card.style.display = name.includes(input) ? "block" : "none";
+      }
+    }
+
+    // 📊 Chart Setup
+    const chartOptions = {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      cutout: '75%',
+    };
+
+    const createChart = (ctx, color) => new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Done', 'Remaining'],
+        datasets: [{
+          data: [0, 1],
+          backgroundColor: [color, 'rgba(255,255,255,0.1)'],
+          borderWidth: 2,
+        }]
+      },
+      options: chartOptions
+    });
+
+    const checkinChart = createChart(document.getElementById('checkinChart'), '#00d1ff');
+    const snackChart = createChart(document.getElementById('snackChart'), '#ffcc00');
+    const dinnerChart = createChart(document.getElementById('dinnerChart'), '#00ff99');
+    const checkoutChart = createChart(document.getElementById('checkoutChart'), '#ff4d4d');
+
+    function animateNumber(id, newValue) {
+      const el = document.getElementById(id);
+      const current = parseInt(el.innerText) || 0;
+      const step = (newValue - current) / 15;
+      let count = 0;
+      const interval = setInterval(() => {
+        count++;
+        el.innerText = Math.round(current + step * count);
+        if (count >= 15) {
+          el.innerText = newValue;
+          clearInterval(interval);
+        }
+      }, 40);
+    }
+
+    async function updateCharts() {
+      const res = await fetch('/stats');
+      const data = await res.json();
+
+      const total = Math.max(data.check_in + data.snacks + data.dinner + data.check_out, 1);
+
+      // Update chart values
+      checkinChart.data.datasets[0].data = [data.check_in, total - data.check_in];
+      snackChart.data.datasets[0].data = [data.snacks, total - data.snacks];
+      dinnerChart.data.datasets[0].data = [data.dinner, total - data.dinner];
+      checkoutChart.data.datasets[0].data = [data.check_out, total - data.check_out];
+
+      checkinChart.update();
+      snackChart.update();
+      dinnerChart.update();
+      checkoutChart.update();
+
+      // Animate numbers
+      animateNumber("checkinNum", data.check_in);
+      animateNumber("snackNum", data.snacks);
+      animateNumber("dinnerNum", data.dinner);
+      animateNumber("checkoutNum", data.check_out);
+    }
+
+    setInterval(updateCharts, 5000);
+    updateCharts();
+  </script>
+  <!-- 💙 Global Footer -->
+<footer>
+  Built by <b>Samarth S G</b> | Ignitron 2k25 
+</footer>
+
+</body>
+</html>

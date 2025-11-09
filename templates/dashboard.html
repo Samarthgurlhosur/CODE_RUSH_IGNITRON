@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coordinator Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css" />
+
+  <style>
+    /* 🌀 Mascot Spinner Animation */
+    .mascot-spinner {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .mascot-spinner img {
+      width: 120px;
+      height: 120px;
+      animation: spin 3s linear infinite;
+      filter: drop-shadow(0 0 10px #00d1ff);
+    }
+
+    .mascot-spinner p {
+      color: #00d1ff;
+      font-weight: 600;
+      margin-top: 10px;
+      font-size: 18px;
+      text-shadow: 0 0 10px #00d1ff;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* 💙 Footer credit */
+    footer {
+      text-align: center;
+      color: #00d1ff;
+      font-weight: 500;
+      margin-top: 50px;
+      padding: 15px;
+      font-size: 15px;
+      text-shadow: 0 0 10px #00d1ff;
+      animation: glow 2s infinite alternate;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 5px #00d1ff, 0 0 10px #00d1ff; }
+      to { text-shadow: 0 0 20px #00d1ff, 0 0 30px #00d1ff; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Coordinator Dashboard</h2>
+
+  <!-- 🌀 Mascot Spinner -->
+  <div class="mascot-spinner" id="mascot-loader">
+    <img src="/static/logo.png" alt="Hackathon Mascot">
+    <p>Scanning for QR... please hold steady 🎯</p>
+  </div>
+
+  <!-- QR Code Scanner -->
+  <div id="reader"></div>
+
+  <!-- Team Info Section -->
+  <div id="team-info" class="hidden">
+    <h3 id="team-name"></h3>
+    <p id="team-members"></p>
+
+    <table id="members-table">
+      <thead>
+        <tr>
+          <th>Member</th>
+          <th>Check-In</th>
+          <th>Snacks</th>
+          <th>Dinner</th>
+          <th>Check-Out</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <button onclick="updateMembers()">Update Status</button>
+    <button id="scan-next" class="hidden" onclick="startNextScan()">Scan Next QR</button>
+  </div>
+
+  <!-- 💙 Footer -->
+  <footer>
+    Built by <b>Samarth S G</b> | Ignitron 2k25
+  </footer>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="/static/script.js"></script>
+
+  <!-- ❌ Removed duplicate inline JS functions to avoid overwriting -->
+</body>
+</html>
